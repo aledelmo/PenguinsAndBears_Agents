@@ -1,4 +1,5 @@
 ﻿using Unity.MLAgents;
+using Unity.MLAgents.Actuators;
 using Unity.MLAgents.Sensors;
 using UnityEngine;
 namespace Penguin.Scripts
@@ -38,25 +39,19 @@ namespace Penguin.Scripts
         /// Perform actions based on a vector of numbers
         /// </summary>
         /// <param name="vectorAction">The list of actions to take</param>
-        public override void OnActionReceived(float[] vectorAction)
+        public override void OnActionReceived(ActionBuffers actions)
         {
+            var vectorAction = actions.DiscreteActions;
             // Convert the first action to forward movement
             var forwardAmount = vectorAction[0];
 
             // Convert the second action to turning left or right
-            float turnAmount;
-            switch (vectorAction[1])
+            var turnAmount = vectorAction[1] switch
             {
-                case 1f:
-                    turnAmount = -1f;
-                    break;
-                case 2f:
-                    turnAmount = 1f;
-                    break;
-                default:
-                    turnAmount = 0f;
-                    break;
-            }
+                1 => -1f,
+                2 => 1f,
+                _ => 0f
+            };
 
             // Apply movement
             var transform1 = transform;
@@ -73,7 +68,7 @@ namespace Penguin.Scripts
         /// Behavior Type to "Heuristic Only" in the Behavior Parameters inspector.
         /// </summary>
         /// <returns>A vectorAction array of floats that will be passed into </returns>
-        public override void Heuristic(float[] actionsOut)
+        public override void Heuristic(in ActionBuffers actionsOut)
         {
             var forwardAction = 0f;
             var turnAction = 0f;
@@ -93,9 +88,10 @@ namespace Penguin.Scripts
                 turnAction = 2f;
             }
 
+            var continuousActionsOut = actionsOut.ContinuousActions;
             // Put the actions into an array and return
-            actionsOut[0] = forwardAction;
-            actionsOut[1] = turnAction;
+            continuousActionsOut[0] = forwardAction;
+            continuousActionsOut[1] = turnAction;
         }
     
         /// <summary>
